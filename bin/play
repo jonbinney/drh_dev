@@ -1,12 +1,11 @@
 #!/usr/bin/bash
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-ROOT_DIR=$SCRIPT_DIR/..
-
-cd $ROOT_DIR/deep_quoridor/rust && maturin develop --release
-
+ROOT_DIR=$(git rev-parse --show-toplevel)
 cd $ROOT_DIR
+
+(cd deep_quoridor/rust && maturin develop --release)
+
 echo Running command in $PWD
 
 POLICY_DB_PATH=$ROOT_DIR/policydb_304.sqlite

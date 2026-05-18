@@ -7,11 +7,8 @@ MAX_STEPS=16
 
 NUM_THREADS=10
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-ROOT_DIR=$SCRIPT_DIR/..
-
+ROOT_DIR=$(git rev-parse --show-toplevel)
 cd $ROOT_DIR
-
 
 OUTPUT_DB_PATH=policydb_${BOARD_SIZE}_${MAX_WALLS}_${MAX_STEPS}.parquet
 
