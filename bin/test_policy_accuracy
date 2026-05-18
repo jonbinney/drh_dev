@@ -1,0 +1,21 @@
+#!/usr/bin/bash
+
+BOARD_SIZE=5
+MAX_WALLS=1
+MAX_STEPS=16
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+ROOT_DIR=$SCRIPT_DIR/..
+
+cd $ROOT_DIR
+
+#DB_PATH=policydb_${BOARD_SIZE}_${MAX_WALLS}_${MAX_STEPS}.parquet
+DB_PATH=wandb:the-lazy-learning-lair/policydb/policydb_${BOARD_SIZE}_${MAX_WALLS}_${MAX_STEPS}:latest
+
+(cd deep_quoridor/rust && maturin develop --release)
+python deep_quoridor/src/train_policy_db_evaluator.py ${DB_PATH} \
+-p nn_type=resnet,nn_resnet_num_blocks=2,nn_resnet_num_channels=32,learning_rate=0.001,batch_size=2048,weight_decay=0.0001 \
+  --num-steps 9999999 --test-fraction 0.01 --test-player=2 -w
+
+# Known good for B5W2
+#-p nn_type=resnet,nn_resnet_num_blocks=2,nn_resnet_num_channels=32,learning_rate=0.001,batch_size=2048,weight_decay=0.0001 \

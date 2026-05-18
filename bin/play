@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+ROOT_DIR=$SCRIPT_DIR/..
+
+cd $ROOT_DIR/deep_quoridor/rust && maturin develop --release
+
+cd $ROOT_DIR
+echo Running command in $PWD
+
+POLICY_DB_PATH=$ROOT_DIR/policydb_304.sqlite
+
+python deep_quoridor/src/play.py \
+	-N 3 -W 0 -mx 4 \
+	-t 100 \
+	-i 34 \
+	-r computationtimes arenaresults3 eloresults progressbar \
+	--num-workers=0 \
+	-p \
+	simple:max_depth=3,discount_factor=1.0 \
+	policydb:nick=policydb_a,db_path=$POLICY_DB_PATH
+	#policydb:nick=policydb_b,db_path=$POLICY_DB_PATH \
+	# human \
+	#greedy
+	#alphazero:wandb_project=B5W2,wandb_alias=v24,mcts_n=2,mcts_ucb_c=1.2
+  #simple:nick=s_rust,backend=rust_qbitrepr,max_depth=9,heuristic=0,discount_factor=1
+	#policydb:nick=pdb2,db_path=policydb_304.sqlite
+

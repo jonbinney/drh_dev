@@ -1,0 +1,54 @@
+#!/usr/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+ROOT_DIR=$SCRIPT_DIR/..
+
+cd $ROOT_DIR
+
+TARGET_SUBDIR=ws/deep_rabbit_hole
+
+REMOTE_HOST="$1"
+shift # Remove host from argument list
+
+# 1. Extract the remote command (everything until "--")
+REMOTE_CMD=()
+while [[ $# -gt 0 && "$1" != "--" ]]; do
+    REMOTE_CMD+=("$1")
+    shift
+done
+
+# 2. Skip the "--" separator
+if [[ "$1" == "--" ]]; then
+    shift
+else
+    echo "Error: You must provide a '--' separator before the list of directories."
+    exit 1
+fi
+
+# 3. Everything remaining are the directories to sync
+DIRS=("$@")
+
+# Validation
+if [[ -z "$REMOTE_HOST" || ${#DIRS[@]} -eq 0 ]]; then
+    echo "Usage: $0 <host> [command...] -- <dir1> [dir2...]"
+    exit 1
+fi
+
+echo "--- Syncing directories ---"
+
+# Single rsync call: rsync handles multiple sources followed by one destination
+rsync -ravz --mkpath "${DIRS[@]}" "$REMOTE_HOST:~/$TARGET_SUBDIR/"
+
+# 4. Run the remote command if one was provided
+if [[ ${#REMOTE_CMD[@]} -gt 0 ]]; then
+    REMOTE_TARGET_PATH="\$HOME/$TARGET_SUBDIR"
+    SSH_EXEC="\
+        cd $REMOTE_TARGET_PATH \
+        && . "\$HOME/.cargo/env" && . .venv/bin/activate \
+        && export PATH=\"\$PATH:$REMOTE_TARGET_PATH/jbin\" \
+        && ${REMOTE_CMD[*]}"
+    echo "--- Running remote command: ${SSH_EXEC} ---"
+    
+    ssh "$REMOTE_HOST" "$SSH_EXEC"
+fi
+
+echo "Done."
