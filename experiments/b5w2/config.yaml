@@ -20,26 +20,34 @@ wandb:
     when_min:
     - dumb_score
 self_play:
-  num_workers: 8
-  parallel_games: 64
+  program: rust
+  num_processes: 1
+  mcts_worker_threads: 12
+  games_per_process: 128
+  eval_batch_size: 1024
+  leaf_parallelism: 16
+  virtual_loss: 3
+  enable_tree_reuse: true
+  eval_cache_max_size: 1000000
+  eval_max_wait_ms: 1
   alphazero:
     mcts_noise_epsilon: 0.25
 training:
-  games_per_training_step: 25.0
+  games_per_training_step: 100
   learning_rate: 0.001
   batch_size: 2048
   weight_decay: 0.0001
   replay_buffer_size: 20000
   max_cached_games: 20000
-  finish_after: 1 hour
+  finish_after: 15 hours
 benchmarks:
-- every: 10 models
+- every: 1 models
   jobs:
   - type: tournament
     alphazero:
       mcts_n: 0
     prefix: raw
-    times: 100
+    times: 20
     opponents:
     - random
     - greedy:p_random=0.3,nick=greedy-03
@@ -51,15 +59,7 @@ benchmarks:
     alphazero:
       mcts_n: 0
     prefix: raw
-- every: 100 models
-  jobs:
-  - type: agent_evolution
-    alphazero:
-      mcts_n: 0
-    prefix: raw
-    times: 10
-    top_n: 5
-- every: 100 models
+- every: 10 models
   jobs:
   - type: tournament
     prefix: ''
@@ -73,10 +73,3 @@ benchmarks:
     - simple:branching_factor=16,nick=simple-bf16
   - type: dumb_score
     prefix: ''
-- every: 100 models
-  jobs:
-  - type: tournament
-    prefix: hard
-    times: 2
-    opponents:
-    - simple:branching_factor=256,nick=simple,max_depth=6
