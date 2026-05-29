@@ -1,0 +1,11 @@
+#!/usr/bin/bash
+set -e
+
+DRH_DEV_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)/../"
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+cd $ROOT_DIR
+
+(cd deep_quoridor/rust && cargo build --release --features binary --bin=play_server)
+
+$ROOT_DIR/deep_quoridor/rust/target/release/play_server --play-dir $DRH_DEV_DIR/server/

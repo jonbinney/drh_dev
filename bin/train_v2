@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+cd $ROOT_DIR
+
+(cd deep_quoridor/rust && cargo build --bin selfplay --release --all-features)
+python -O deep_quoridor/src/train_v2.py \
+    experiments/2026_05_23_jon_b9w10_performance/config.yaml \
+    --overrides run_id=jdb-b9w10-from-b9w6 training.initial_model.file=/home/jbinney/ws/deep_rabbit_hole/deep_quoridor/runs/jdb-b9w6-from-b9w4/models/checkpoints/model_712.pt
